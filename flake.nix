@@ -64,7 +64,20 @@
         overlays = [ inputs.nur.overlay ];
         config = {
           allowUnsupportedSystem = true;
-          permittedInsecurePackages = [ "olm-3.2.16" ];
+          permittedInsecurePackages = [
+            "olm-3.2.16"
+            # well done dotnet...
+            # this is just for omnisharp
+            "dotnet-core-combined"
+            "dotnet-sdk-6.0.428"
+            "dotnet-sdk-wrapped-6.0.428"
+            "dotnet-sdk-6.0.136"
+            "dotnet-sdk-wrapped-6.0.136"
+            "dotnet-sdk-7.0.120"
+            "dotnet-sdk-wrapped-7.0.120"
+            "dotnet-sdk-7.0.410"
+            "dotnet-sdk-wrapped-7.0.410"
+          ];
           allowUnfree = true;
         };
       };
