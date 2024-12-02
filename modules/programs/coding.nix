@@ -224,7 +224,7 @@
           packages = lib.mkOption {
             default = with pkgs; [
               #.!
-              dotnet-sdk_8
+              dotnet-sdk
               omnisharp-roslyn
               csharpier
               netcoredbg
