@@ -375,6 +375,24 @@
             '';
           };
         };
+        gleam = {
+          enable = lib.mkOption {
+            default = true;
+            example = false;
+            type = lib.types.bool;
+            description = ''
+              Enables gleam.
+            '';
+          };
+          packages = lib.mkOption {
+            default = with pkgs; [ gleam ];
+            example = [ ];
+            type = with lib.types; listOf package;
+            description = ''
+              gleam packages
+            '';
+          };
+        };
         asm = {
           enable = lib.mkOption {
             default = true;
@@ -469,7 +487,8 @@
           ++ (lib.lists.optionals config.mods.coding.languages.configFiles.enable config.mods.coding.languages.configFiles.packages)
           ++ (lib.lists.optionals config.mods.coding.languages.ts-js.enable config.mods.coding.languages.ts-js.packages)
           ++ (lib.lists.optionals config.mods.coding.languages.typst.enable config.mods.coding.languages.typst.packages)
-          ++ (lib.lists.optionals config.mods.coding.languages.zig.enable config.mods.coding.languages.zig.packages);
+          ++ (lib.lists.optionals config.mods.coding.languages.zig.enable config.mods.coding.languages.zig.packages)
+          ++ (lib.lists.optionals config.mods.coding.languages.gleam.enable config.mods.coding.languages.gleam.packages);
       }
     );
 }
