@@ -22,5 +22,22 @@ in {
         };
       };
     })
+    (mkFirefoxModule {
+      modulePath = [
+        "programs"
+        "librewolf-dashnix"
+      ];
+      name = "LibreWolf";
+      description = "LibreWolf is a privacy enhanced Firefox fork.";
+      wrappedPackageName = "librewolf";
+      unwrappedPackageName = "librewolf-unwrapped";
+
+      platforms.linux = {configPath = ".librewolf";};
+      platforms.darwin = {
+        configPath = "Library/Application Support/LibreWolf";
+      };
+
+      enableBookmarks = false;
+    })
   ];
 }

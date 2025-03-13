@@ -161,9 +161,10 @@ in {
         }
         else if config.mods.homePackages.browser == "librewolf"
         then {
-          librewolf = {
+          librewolf-dashnix = {
             enable = true;
-            settings = config.mods.browser.librewolf.settings;
+            policies = config.mods.browser.librewolf.configuration;
+            profiles = builtins.listToAttrs config.mods.browser.librewolf.profiles;
           };
         }
         else {}
