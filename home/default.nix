@@ -3,6 +3,7 @@
   additionalHomeConfig,
   additionalHomeMods,
   additionalInputs,
+  dashNixAdditionalProps,
   config,
   homeMods,
   inputs,
@@ -27,7 +28,16 @@
     useGlobalPkgs = mkDashDefault true;
     useUserPackages = mkDashDefault true;
     extraSpecialArgs = {
-      inherit inputs root additionalInputs alternativePkgs system stable unstable;
+      inherit
+        inputs
+        root
+        additionalInputs
+        alternativePkgs
+        system
+        stable
+        unstable
+        dashNixAdditionalProps
+        ;
       mkDashDefault = import ../lib/override.nix {inherit lib;};
     };
 

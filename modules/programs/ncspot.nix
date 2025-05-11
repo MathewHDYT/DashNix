@@ -12,11 +12,8 @@
       type = lib.types.bool;
       description = "Enables ncspot with a config";
     };
-  };
-  config = lib.mkIf config.mods.ncspot.enable (
-    lib.optionalAttrs (options ? home.packages) {
-      home.packages = with pkgs; [ncspot];
-      xdg.configFile."ncspot/config.toml".source = (pkgs.formats.toml {}).generate "ncspot" {
+    config = lib.mkOption {
+      default = {
         notify = true;
         shuffle = true;
         cover_max_scale = 2;
@@ -52,6 +49,16 @@
           body = "%title";
         };
       };
+      example = {};
+      type = with lib.types; attrsOf anything;
+      description = "config";
+    };
+  };
+  config = lib.mkIf config.mods.ncspot.enable (
+    lib.optionalAttrs (options ? home.packages) {
+      home.packages = with pkgs; [ncspot];
+      xdg.configFile."ncspot/config.toml".source =
+        lib.mkIf config.mods.ncspot.useConfig (pkgs.formats.toml {}).generate "ncspot" config.mods.ncspot.config;
     }
   );
 }

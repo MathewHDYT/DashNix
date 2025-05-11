@@ -1,4 +1,5 @@
 {
+  mkDashDefault,
   config,
   lib,
   inputs,
@@ -17,7 +18,7 @@
         '';
       };
       monitor = lib.mkOption {
-        default = "${config.conf.defaultMonitor}";
+        default = "${config.mods.hypr.hyprland.defaultMonitor}";
         example = "eDP-1";
         type = lib.types.str;
         description = ''
@@ -26,7 +27,7 @@
         '';
       };
       scale = lib.mkOption {
-        default = "${config.conf.defaultMonitorScale}";
+        default = "${config.mods.hypr.hyprland.defaultMonitorScale}";
         example = "1.5";
         type = lib.types.str;
         description = ''
@@ -45,7 +46,7 @@
         description = "The compositor/greeter command to run";
       };
       resolution = lib.mkOption {
-        default = "${config.conf.defaultMonitorMode}";
+        default = "${config.mods.hypr.hyprland.defaultMonitorMode}";
         example = "3440x1440@180";
         type = lib.types.str;
         description = ''
@@ -86,16 +87,16 @@
     lib.mkIf config.mods.greetd.enable (
       lib.optionalAttrs (options ? environment) {
         # greetd display manager
-        programs.hyprland.enable = true;
+        programs.hyprland.enable = mkDashDefault true;
         services = {
           displayManager.sessionPackages = config.mods.greetd.environments;
           greetd = {
             enable = true;
             settings = {
-              terminal.vt = 1;
+              terminal.vt = mkDashDefault 1;
               default_session = {
-                command = config.mods.greetd.greeterCommand;
-                user = username;
+                command = mkDashDefault config.mods.greetd.greeterCommand;
+                user = mkDashDefault username;
               };
             };
           };
@@ -129,9 +130,9 @@
         '';
 
         # unlock GPG keyring on login
-        security.pam.services.greetd.enableGnomeKeyring = true;
-        security.pam.services.greetd.sshAgentAuth = true;
-        security.pam.sshAgentAuth.enable = true;
+        security.pam.services.greetd.enableGnomeKeyring = mkDashDefault true;
+        security.pam.services.greetd.sshAgentAuth = mkDashDefault true;
+        security.pam.sshAgentAuth.enable = mkDashDefault true;
       }
       // lib.optionalAttrs (options ? home) {
         xdg.configFile."regreet/regreet.toml".source =

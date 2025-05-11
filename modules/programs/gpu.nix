@@ -67,16 +67,16 @@
     environment.variables =
       if (config.mods.gpu.amdgpu.enable && config.mods.gpu.vapi.rocm.enable)
       then {
-        RUSTICL_ENABLE = "radeonsi";
+        RUSTICL_ENABLE = mkDashDefault "radeonsi";
       }
       else {};
 
     hardware = {
       nvidia = lib.mkIf config.mods.gpu.nvidia.enable {
-        modesetting.enable = true;
-        open = true;
-        nvidiaSettings = true;
-        package = config.boot.kernelPackages.nvidiaPackages.beta;
+        modesetting.enable = mkDashDefault true;
+        open = mkDashDefault true;
+        nvidiaSettings = mkDashDefault true;
+        package = mkDashDefault config.boot.kernelPackages.nvidiaPackages.beta;
       };
       graphics = let
         amdPackages = [

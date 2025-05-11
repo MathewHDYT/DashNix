@@ -1,4 +1,5 @@
 {
+  mkDashDefault,
   lib,
   config,
   options,
@@ -88,11 +89,11 @@
     (lib.optionalAttrs (options ? stylix) {
       stylix = {
         enable = true;
-        image = ../../base/black.jpg;
-        polarity = "dark";
+        image = mkDashDefault ../../base/black.jpg;
+        polarity = mkDashDefault "dark";
         targets = {
-          nixvim.enable = false;
-          fish.enable = false;
+          nixvim.enable = mkDashDefault false;
+          fish.enable = mkDashDefault false;
         };
         fonts = config.mods.stylix.fonts;
         cursor = config.mods.stylix.cursor;

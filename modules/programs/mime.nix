@@ -1,6 +1,7 @@
 # Copyright (c) 2020-2021 Mihai Fufezan
 # credits to fufexan https://github.com/fufexan/dotfiles/blob/main/home/terminal/programs/xdg.nix
 {
+  mkDashDefault,
   config,
   lib,
   options,
@@ -148,11 +149,11 @@ in {
         };
 
         userDirs = {
-          enable = true;
-          createDirectories = true;
+          enable = mkDashDefault true;
+          createDirectories = mkDashDefault true;
           extraConfig = {
-            XDG_SCREENSHOTS_DIR = "${config.xdg.userDirs.pictures}/Screenshots";
-            pws = "${config.home.homeDirectory}/pws";
+            XDG_SCREENSHOTS_DIR = mkDashDefault "${config.xdg.userDirs.pictures}/Screenshots";
+            pws = mkDashDefault "${config.home.homeDirectory}/pws";
           };
         };
       };

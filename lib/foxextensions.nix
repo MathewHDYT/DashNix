@@ -1,6 +1,6 @@
 {
   lib,
-  stable,
+  dashNixAdditionalProps,
   pkgs,
   name,
   ...
@@ -24,9 +24,16 @@ in {
       (mkExtension "@react-devtools" "https://addons.mozilla.org/firefox/downloads/latest/react-devtools/latest.xpi")
       (mkExtension "extension@redux.devtools" "https://addons.mozilla.org/firefox/downloads/latest/reduxdevtools/latest.xpi")
       (mkExtension "private-relay@firefox.com" "https://addons.mozilla.org/firefox/downloads/latest/private-relay/latest.xpi")
-      (mkExtension "addon@darkreader.org" "file://${pkgs.callPackage ../../../patches/darkreader.nix {inherit lib stable;}}/latest.xpi")
+      (mkExtension "addon@darkreader.org" "file://${pkgs.callPackage ../patches/darkreader.nix {inherit lib dashNixAdditionalProps;}}/latest.xpi")
     ];
-    example = [];
+    example = [
+      {
+        "78272b6fa58f4a1abaac99321d503a20@proton.me" = {
+          install_url = "https://addons.mozilla.org/en-US/firefox/downloads/latest/proton-pass/latest.xpi";
+          installation_mode = "normal_installed";
+        };
+      }
+    ];
     type = with lib.types; listOf anything;
     description = ''
       List of extensions via attrsets:

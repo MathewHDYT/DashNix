@@ -1,16 +1,16 @@
 {
   lib,
+  dashNixAdditionalProps,
   config,
   options,
   pkgs,
-  stable,
   ...
 }: let
   name = "librewolf";
 in {
   imports = [
-    (import ./ffextensions.nix
-      {inherit lib stable pkgs name;})
+    (import ../../../lib/foxextensions.nix
+      {inherit lib dashNixAdditionalProps pkgs name;})
   ];
   options.mods.browser.${name} = {
     enable = lib.mkOption {

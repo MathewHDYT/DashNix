@@ -1,4 +1,5 @@
 {
+  mkDashDefault,
   lib,
   config,
   options,
@@ -45,7 +46,7 @@
         code_format = "[](bg:prev_bg fg:#5256c3)[ $symbol ($version)](bg:#5256c3)";
       in {
         enable = true;
-        interactiveOnly = true;
+        interactiveOnly = mkDashDefault true;
         presets = lib.mkIf config.mods.starship.useDefaultPrompt ["pastel-powerline"];
         settings =
           lib.mkIf config.mods.starship.useDefaultPrompt {

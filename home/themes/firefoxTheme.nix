@@ -289,37 +289,41 @@
       }
     '';
   browsername = config.mods.homePackages.browser;
-  profiles = 
-  if config.mods.homePackages.browser == "firefox" then 
-    config.mods.browser.firefox.profiles
-    else if config.mods.homePackages.browser == "zen" then 
-      config.mods.browser.zen.profiles
-    else if config.mods.homePackages.browser == "librewolf" then 
-      [{name = "default"; value = {};}]
-    else 
-    [];
+  profiles =
+    if config.mods.homePackages.browser == "firefox"
+    then config.mods.browser.firefox.profiles
+    else if config.mods.homePackages.browser == "zen"
+    then config.mods.browser.zen.profiles
+    else if config.mods.homePackages.browser == "librewolf"
+    then [
+      {
+        name = "default";
+        value = {};
+      }
+    ]
+    else [];
   profileNamesFn =
     builtins.catAttrs "name";
   chromesFn = builtins.map (
     name:
-    if (builtins.isString browsername)
-    then {
-      ".${browsername}/${name}/chrome/userContent.css" = {
-        text = userChrome;
-      };
+      if (builtins.isString browsername)
+      then {
+        ".${browsername}/${name}/chrome/userContent.css" = {
+          text = userChrome;
+        };
 
-      ".${browsername}/${name}/chrome/userChrome.css" = {
-        text = userContent;
-      };
-    }
-    else {}
+        ".${browsername}/${name}/chrome/userChrome.css" = {
+          text = userContent;
+        };
+      }
+      else {}
   );
   moduleFn = lib.lists.foldr (attr1: attr2: attr1 // attr2) {};
-  mkFirefoxTheme = (profiles:
-    profiles
-    |> profileNamesFn
-    |> chromesFn
-    |> moduleFn
-    );
-in
-  {home.file = mkFirefoxTheme profiles;}
+  mkFirefoxTheme = (
+    profiles:
+      profiles
+      |> profileNamesFn
+      |> chromesFn
+      |> moduleFn
+  );
+in {home.file = mkFirefoxTheme profiles;}

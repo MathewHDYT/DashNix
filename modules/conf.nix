@@ -76,39 +76,13 @@
 
     additionalBootKernalParams = lib.mkOption {
       default = [
-        "video=${config.conf.defaultMonitor}:${config.conf.defaultMonitorMode}"
+        # TODO test if needed
+        #"video=${config.conf.defaultMonitor}:${config.conf.defaultMonitorMode}"
       ];
       example = [];
       type = with lib.types; listOf str;
       description = ''
         additional kernelParams passed to bootloader
-      '';
-    };
-
-    defaultMonitor = lib.mkOption {
-      default = "";
-      example = "eDP-1";
-      type = lib.types.str;
-      description = ''
-        main monitor
-      '';
-    };
-
-    defaultMonitorMode = lib.mkOption {
-      default = "";
-      example = "3440x1440@180";
-      type = lib.types.str;
-      description = ''
-        main monitor mode: width x height @ refreshrate
-      '';
-    };
-
-    defaultMonitorScale = lib.mkOption {
-      default = "1";
-      example = "1.5";
-      type = lib.types.str;
-      description = ''
-        main monitor scaling
       '';
     };
 

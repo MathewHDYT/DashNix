@@ -1,10 +1,10 @@
 # credits to Voronind for darkreader config https://github.com/voronind-com/nix/blob/main/home/program/firefox/default.nix
 {
   lib,
+  dashNixAdditionalProps,
   config,
   options,
   inputs,
-  stable,
   system,
   pkgs,
   ...
@@ -16,8 +16,8 @@
   name = "zen";
 in {
   imports = [
-    (import ./ffextensions.nix
-      {inherit lib stable pkgs name;})
+    (import ../../../lib/foxextensions.nix
+      {inherit lib dashNixAdditionalProps pkgs name;})
   ];
   options.mods.browser.${name} = {
     enable = lib.mkOption {

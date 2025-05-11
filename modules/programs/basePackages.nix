@@ -80,7 +80,7 @@
           ++ config.mods.basePackages.additionalPackages
       else config.mods.basePackages.additionalPackages;
 
-    gtk.iconCache.enable = false;
+    gtk.iconCache.enable = mkDashDefault false;
     services =
       if config.mods.basePackages.enable
       then
@@ -102,27 +102,30 @@
     programs =
       if config.mods.basePackages.enable
       then
-        {
-          nix-ld = {
-            enable = mkDashDefault true;
-            libraries = with pkgs; [
-              jdk
-              zlib
-            ];
-          };
-          direnv = {
-            package = mkDashDefault pkgs.direnv;
-            silent = mkDashDefault false;
-            loadInNixShell = mkDashDefault true;
-            direnvrcExtra = mkDashDefault "";
-            nix-direnv = {
+        lib.mkMerge
+        [
+          {
+            nix-ld = {
               enable = mkDashDefault true;
-              package = mkDashDefault pkgs.nix-direnv;
+              libraries = with pkgs; [
+                jdk
+                zlib
+              ];
             };
-          };
-          gnupg.agent.enable = mkDashDefault true;
-        }
-        // config.mods.basePackages.specialPrograms
+            direnv = {
+              package = mkDashDefault pkgs.direnv;
+              silent = mkDashDefault false;
+              loadInNixShell = mkDashDefault true;
+              direnvrcExtra = mkDashDefault "";
+              nix-direnv = {
+                enable = mkDashDefault true;
+                package = mkDashDefault pkgs.nix-direnv;
+              };
+            };
+            gnupg.agent.enable = mkDashDefault true;
+          }
+          config.mods.basePackages.specialPrograms
+        ]
       else config.mods.basePackages.specialPrograms;
   };
 }

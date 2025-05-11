@@ -1,4 +1,5 @@
 {
+  mkDashDefault,
   lib,
   config,
   options,
@@ -18,8 +19,8 @@
   config = lib.mkIf config.mods.bluetooth.enable (
     lib.optionalAttrs (options ? hardware.bluetooth) {
       hardware.bluetooth = {
-        enable = true;
-        powerOnBoot = true;
+        enable = mkDashDefault true;
+        powerOnBoot = mkDashDefault true;
       };
     }
   );

@@ -1,6 +1,7 @@
 {
   imports = [
     ./acpid.nix
+    ./anyrun.nix
     ./basePackages.nix
     ./bluetooth.nix
     ./browser
@@ -19,7 +20,8 @@
     ./gpu.nix
     ./greetd.nix
     ./homePackages.nix
-    ./hyprland
+    ./hypr
+    ./ironbar.nix
     ./kde.nix
     ./kdeConnect.nix
     ./keepassxc.nix

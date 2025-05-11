@@ -1,4 +1,5 @@
 {
+  mkDashDefault,
   lib,
   config,
   options,
@@ -41,15 +42,15 @@ in {
         libvirtd = {
           enable = true;
           qemu = {
-            package = pkgs.qemu_kvm;
-            swtpm.enable = true;
-            ovmf.enable = true;
+            package = mkDashDefault pkgs.qemu_kvm;
+            swtpm.enable = mkDashDefault true;
+            ovmf.enable = mkDashDefault true;
             ovmf.packages = [pkgs.OVMFFull.fd];
           };
         };
-        spiceUSBRedirection.enable = true;
+        spiceUSBRedirection.enable = mkDashDefault true;
       };
-      services.spice-vdagentd.enable = true;
+      services.spice-vdagentd.enable = mkDashDefault true;
 
       users.users.${config.conf.username}.extraGroups = [
         "libvirtd"

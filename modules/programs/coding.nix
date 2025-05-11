@@ -1,4 +1,5 @@
 {
+  mkDashDefault,
   lib,
   config,
   pkgs,
@@ -518,7 +519,7 @@ in {
         };
         programs.vscode = lib.mkIf config.mods.coding.vscodium.enable {
           enable = true;
-          package = pkgs.vscodium;
+          package = mkDashDefault pkgs.vscodium;
           profiles.default.extensions = config.mods.coding.vscodium.extensions;
         };
         xdg.configFile."neovide/config.toml" = lib.mkIf (config.mods.coding.dashvim || config.mods.coding.neovide.enable) {

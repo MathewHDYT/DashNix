@@ -11,6 +11,9 @@
       inputs.nixpkgs.follows = "unstable";
     };
 
+    # Darkreader requires es20, hence a stable pin
+    pkgsDarkreader.url = "github:NixOs/nixpkgs/nixos-24.11";
+
     home-manager = {
       url = "github:nix-community/home-manager";
       inputs.nixpkgs.follows = "unstable";
@@ -78,30 +81,17 @@
       "jitsi-meet-1.0.8043"
       "nextcloud-27.1.11"
     ];
-    stable = import inputs.stable {
-      system = currentSystem;
-      config = {
-        allowUnfree = true;
-        permittedInsecurePackages = permittedPackages;
-      };
-      overlays = [
-        inputs.nur.overlays.default
-        inputs.chaoticNyx.overlays.default
-      ];
+    stable = import ./lib/importPkgs.nix {
+      inherit inputs permittedPackages currentSystem;
+      pkgs = inputs.stable;
     };
-    unstable = import inputs.unstable {
-      system = currentSystem;
-      config = {
-        allowUnsupportedSystem = true;
-        permittedInsecurePackages = permittedPackages;
-        # Often happens with neovim, this should not block everything.
-        allowBroken = true;
-        allowUnfree = true;
-      };
-      overlays = [
-        inputs.nur.overlays.default
-        inputs.chaoticNyx.overlays.default
-      ];
+    unstable = import ./lib/importPkgs.nix {
+      inherit inputs permittedPackages currentSystem;
+      pkgs = inputs.unstable;
+    };
+    pkgsDarkreader = import ./lib/importPkgs.nix {
+      inherit inputs permittedPackages currentSystem;
+      pkgs = inputs.pkgsDarkreader;
     };
   in rec {
     dashNixLib = import ./lib {
@@ -111,6 +101,9 @@
         unstable
         stable
         ;
+      dashNixAdditionalProps = {
+        inherit pkgsDarkreader;
+      };
       system = currentSystem;
       lib = inputs.unstable.lib;
     };

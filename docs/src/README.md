@@ -1,4 +1,3 @@
-
 <div align = center>
 
 ![Logo of DashNix](logo.svg)
@@ -6,7 +5,6 @@
 </div>
 
 An opinionated flake to bootstrap NixOS systems with default configurations for various programs and services from both NixOS and HomeManager which can be enabled, disabled, configured or replaced at will.
-
 
 # Usage
 
@@ -57,26 +55,52 @@ Here is a minimal required configuration.nix (the TODOs mention a required chang
 
 ```nix
 {config, ...}: {
+  # TODO denote important changes
+
   # variables for system
-  # TODO important changes
   conf = {
-    # change this to your monitor and your pc name
-    # should be something like DP-1
-    defaultMonitor = "YOURMONITOR";
-    # width x height  @ refreshrate
-    defaultMonitorMode = "1920x1080@60";
-    # scale for your main monitor
-    defaultMonitorScale = "1";
-    # your username
+    # TODO your username
     username = "YOURNAME";
     # TODO only needed when you use intel -> amd is default
     # cpu = "intel";
+    # TODO your xkb layout
     locale = "something.UTF-8";
+    # TODO your timezone
     timezone = "CONTINENT/CITY";
   };
+
   # modules
   mods = {
     # default disk config has root home boot and swap partition, overwrite if you want something different
+    sops.enable = false;
+    nextcloud.enable = false;
+    hypr.hyprland = {
+        # TODO monitor configuration for hyprland (hyprland is default)
+        # should be something like DP-1
+        defaultMonitor = "YOURMONITOR";
+        # width x height  @ refreshrate
+        defaultMonitorMode = "1920x1080@60";
+        # scale for your main monitor
+        defaultMonitorScale = "1";
+        # additional configruation can be done as well
+        # customConfig = {
+        #   monitor = [
+        #     # default
+        #     "${config.mods.hypr.hyprland.defaultMonitor},${config.mods.hypr.hyprland.defaultMonitorMode},0x0,${config.mods.hypr.hyprland.defaultMonitorScale}"
+        #     # second example monitor
+        #     "DP-2,3440x1440@180,auto,1"
+        #     # all others
+        #     ",highrr,auto,1"
+        #   ];
+        # }
+    };
+    gpu.nvidia.enable = true;
+    kdeConnect.enable = true;
+    # login manager:
+    # default is greetd
+    # greetd = { };
+    # sddm = { };
+    # gdm = { };
     drives = {
         # default assumes ROOT, BOOT, HOME and SWAP labaled drives exist
         # for an example without HOME see below
@@ -99,29 +123,9 @@ Here is a minimal required configuration.nix (the TODOs mention a required chang
         #     };
         #   }
         # ];
-        # You can also use disko to format your disks on installation. 
+        # You can also use disko to format your disks on installation.
         # Please refer to the Documentation about the drives module for an example.
     };
-    sops.enable = false;
-    nextcloud.enable = false;
-    # default hyprland monitor config -> uncomment when necessary
-    # TODO: Add more monitors when needed
-    #   hyprland.monitor = [
-    #     # default
-    #     "${config.conf.defaultMonitor},${config.conf.defaultMonitorMode},0x0,${config.conf.defaultMonitorScale}"
-    #     # second example monitor
-    #     "DP-2,3440x1440@180,auto,1"
-    #     # all others
-    #     ",highrr,auto,1"
-    #   ];
-    # or amd, whatever you have
-    gpu.nvidia.enable = true;
-    kdeConnect.enable = true;
-    # login manager:
-    # default is greetd
-    # greetd = { };
-    # sddm = { };
-    # gdm = { };
   };
 }
 ```
@@ -186,7 +190,7 @@ This can be done with the overridePkgs flag for the lib function:
 ```
 
 You can now place your systems in the respective directories.
-Keep in mind that the hosts directory will still need to exist in each variant. 
+Keep in mind that the hosts directory will still need to exist in each variant.
 E.g. stable/hosts/yourserver and unstable/hosts/yourdesktop
 
 # Installation
@@ -212,7 +216,7 @@ Installation via manual configuration:
 ```sh
 sudo nixos-install --flake <flakelocation>#<hostname> --root <mountpoint>
 #example
-#nixos-install --flake ~/config#globi --root /mnt 
+#nixos-install --flake ~/config#globi --root /mnt
 ```
 
 Installation via disko:

@@ -1,4 +1,5 @@
 {
+  mkDashDefault,
   lib,
   config,
   options,
@@ -76,27 +77,27 @@
       boot.kernelPackages = lib.mkForce pkgs.linuxPackages_cachyos;
 
       programs = {
-        steam.enable = config.mods.gaming.steam;
+        steam.enable = mkDashDefault config.mods.gaming.steam;
         gamemode.enable = true;
         gamemode = {
-          enableRenice = true;
+          enableRenice = mkDashDefault true;
           settings = {
             general = {
-              desiredgov = "performance";
+              desiredgov = mkDashDefault "performance";
             };
             cpu = {
-              pin_cores = config.mods.gaming.pinCores;
-              park_cores = config.mods.gaming.parkCores;
+              pin_cores = mkDashDefault config.mods.gaming.pinCores;
+              park_cores = mkDashDefault config.mods.gaming.parkCores;
             };
             gpu = lib.mkIf config.mods.gaming.gpuOptimization {
-              apply_gpu_optimisations = "accept-responsibility";
-              gpu_device = config.mods.gaming.gpuDevice;
-              amd_performance_level = "high";
-              nv_powermizer_mode = 1;
+              apply_gpu_optimisations = mkDashDefault "accept-responsibility";
+              gpu_device = mkDashDefault config.mods.gaming.gpuDevice;
+              amd_performance_level = mkDashDefault "high";
+              nv_powermizer_mode = mkDashDefault 1;
             };
             custom = {
-              start = "notify-send -a 'Gamemode' 'Optimizations activated'";
-              end = "notify-send -a 'Gamemode' 'Optimizations deactivated'";
+              start = mkDashDefault "notify-send -a 'Gamemode' 'Optimizations activated'";
+              end = mkDashDefault "notify-send -a 'Gamemode' 'Optimizations deactivated'";
             };
           };
         };

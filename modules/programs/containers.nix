@@ -1,4 +1,5 @@
 {
+  mkDashDefault,
   lib,
   config,
   options,
@@ -63,8 +64,8 @@
           containers.enable = true;
           podman = {
             enable = true;
-            dockerCompat = true;
-            defaultNetwork.settings.dns_enabled = true;
+            dockerCompat = mkDashDefault true;
+            defaultNetwork.settings.dns_enabled = mkDashDefault true;
           };
         }
         else if (config.mods.containers.variant == "docker")

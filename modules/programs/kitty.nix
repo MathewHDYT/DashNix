@@ -41,6 +41,12 @@ in {
       type = lib.types.bool;
       description = "Enables kitty";
     };
+    useDefaultConfig = lib.mkOption {
+      default = true;
+      example = false;
+      type = lib.types.bool;
+      description = "Enable default config for kitty";
+    };
     additionalConfig = lib.mkOption {
       default = {};
       example = {
@@ -48,7 +54,7 @@ in {
         enable_audio_bell = "yes";
       };
       type = with lib.types; attrsOf anything;
-      description = "Additional kitty configuration";
+      description = "Additional kitty configuration. Will be the only configuration if useDefaultConfig is disabled.";
     };
   };
   config = lib.mkIf config.mods.kitty.enable (
@@ -59,80 +65,64 @@ in {
       programs.kitty = {
         enable = true;
         settings =
-          {
-            enable_audio_bell = "no";
-            window_alert_on_bell = "no";
-            cursor_blink_interval = "0";
-            window_padding_width = "1";
-            shell_integration = "yes";
-            sync_with_monitor = "no";
-            background_opacity = "0.8";
+          if config.mods.kitty.useDefaultConfig
+          then
+            {
+              enable_audio_bell = "no";
+              window_alert_on_bell = "no";
+              cursor_blink_interval = "0";
+              window_padding_width = "1";
+              shell_integration = "yes";
+              sync_with_monitor = "no";
+              background_opacity = "0.8";
 
-            font_family = "${config.mods.stylix.fonts.monospace.name}";
-            bold_font = "${config.mods.stylix.fonts.monospace.name} Extra Bold";
-            italic_font = "${config.mods.stylix.fonts.monospace.name} Extra Italic";
-            bold_italic_font = "${config.mods.stylix.fonts.monospace.name} Extra Bold Italic";
+              font_family = "${config.mods.stylix.fonts.monospace.name}";
+              bold_font = "${config.mods.stylix.fonts.monospace.name} Extra Bold";
+              italic_font = "${config.mods.stylix.fonts.monospace.name} Extra Italic";
+              bold_italic_font = "${config.mods.stylix.fonts.monospace.name} Extra Bold Italic";
 
-            background = base;
-            foreground = "#" + scheme.base05;
-            selection_foreground = "#" + scheme.base05;
-            selection_background = base;
-            url_color = "#" + scheme.base04;
-            cursor = "#" + scheme.base05;
-            active_border_color = "#" + scheme.base03;
-            inactive_border_color = "#" + scheme.base01;
-            active_tab_background = base;
-            active_tab_foreground = "#" + scheme.base05;
-            inactive_tab_background = "#" + scheme.base01;
-            inactive_tab_foreground = "#" + scheme.base04;
-            tab_bar_background = "#" + scheme.base01;
+              background = base;
+              foreground = "#" + scheme.base05;
+              selection_foreground = "#" + scheme.base05;
+              selection_background = base;
+              url_color = "#" + scheme.base04;
+              cursor = "#" + scheme.base05;
+              active_border_color = "#" + scheme.base03;
+              inactive_border_color = "#" + scheme.base01;
+              active_tab_background = base;
+              active_tab_foreground = "#" + scheme.base05;
+              inactive_tab_background = "#" + scheme.base01;
+              inactive_tab_foreground = "#" + scheme.base04;
+              tab_bar_background = "#" + scheme.base01;
 
-            mark1_foreground = "#" + scheme.base00;
-            mark1_background = "#" + scheme.base07;
-            mark2_foreground = "#" + scheme.base00;
-            mark2_background = "#" + scheme.base0E;
-            mark3_foreground = "#" + scheme.base00;
-            mark3_background = "#" + scheme.base08;
+              mark1_foreground = "#" + scheme.base00;
+              mark1_background = "#" + scheme.base07;
+              mark2_foreground = "#" + scheme.base00;
+              mark2_background = "#" + scheme.base0E;
+              mark3_foreground = "#" + scheme.base00;
+              mark3_background = "#" + scheme.base08;
 
-            color0 = "#" + scheme.base03;
-            color1 = "#" + scheme.base08;
-            color2 = "#" + scheme.base0B;
-            color3 = "#" + scheme.base0A;
-            color4 = "#" + scheme.base0D;
-            color5 = "#" + scheme.base06;
-            color6 = "#" + scheme.base0C;
-            color7 = "#" + scheme.base07;
+              color0 = "#" + scheme.base03;
+              color1 = "#" + scheme.base08;
+              color2 = "#" + scheme.base0B;
+              color3 = "#" + scheme.base0A;
+              color4 = "#" + scheme.base0D;
+              color5 = "#" + scheme.base06;
+              color6 = "#" + scheme.base0C;
+              color7 = "#" + scheme.base07;
 
-            color8 = "#" + scheme.base04;
-            color9 = "#" + scheme.base08;
-            color10 = "#" + scheme.base0B;
-            color11 = "#" + scheme.base0A;
-            color12 = "#" + scheme.base0D;
-            color13 = "#" + scheme.base06;
-            color14 = "#" + scheme.base0C;
-            color15 = "#" + scheme.base0B;
-
-            # color0 = base;
-            # color1 = "#" + scheme.base08;
-            # color2 = "#" + scheme.base0B;
-            # color3 = "#" + scheme.base0A;
-            # color4 = "#" + scheme.base0D;
-            # color5 = "#" + scheme.base0E;
-            # color6 = "#" + scheme.base0C;
-            # color7 = "#" + scheme.base05;
-            #
-            # color8 = "#" + scheme.base03;
-            # color9 = "#" + scheme.base08;
-            # color10 = "#" + scheme.base0B;
-            # color11 = "#" + scheme.base0A;
-            # color12 = "#" + scheme.base0D;
-            # color13 = "#" + scheme.base0E;
-            # color14 = "#" + scheme.base0C;
-            # color15 = "#" + scheme.base07;
-
-            shell = lib.mkIf config.mods.fish.enable "fish";
-          }
-          // config.mods.kitty.additionalConfig;
+              color8 = "#" + scheme.base04;
+              color9 = "#" + scheme.base08;
+              color10 = "#" + scheme.base0B;
+              color11 = "#" + scheme.base0A;
+              color12 = "#" + scheme.base0D;
+              color13 = "#" + scheme.base06;
+              color14 = "#" + scheme.base0C;
+              color15 = "#" + scheme.base0B;
+              shell = lib.mkIf config.mods.fish.enable "fish";
+            }
+            // config.mods.kitty.additionalConfig
+          else config.mods.kitty.additionalConfig;
       };
     }
   );
