@@ -52,7 +52,7 @@
     # absolute insanity
     chaoticNyx.url = "github:chaotic-cx/nyx/nyxpkgs-unstable";
 
-    compose.url = "github:garnix-io/nixos-compose";
+    # compose.url = "github:garnix-io/nixos-compose";
   };
 
   outputs = {self, ...} @ inputs: let

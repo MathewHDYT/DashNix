@@ -513,7 +513,7 @@ in {
       d-spy
       tmux
       tmate
-      inputs.compose.packages.${system}.default
+      # inputs.compose.packages.${system}.default
     ];
   in
     lib.mkIf config.mods.coding.enable (
