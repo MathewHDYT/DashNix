@@ -59,6 +59,7 @@
     currentSystem = "x86_64-linux";
     permittedPackages = [
       "olm-3.2.16"
+      "segger-jlink-qt4-810"
     ];
     importPkgsFn = import ./lib/importPkgs.nix;
     defaultConfigureFn = pkgs:
