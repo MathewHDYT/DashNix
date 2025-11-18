@@ -10,6 +10,7 @@
   defaultConfig = {
     config = {
       allowUnfree = true;
+      segger-jlink.acceptLicense = true;
       permittedInsecurePackages = permittedPackages;
     };
     overlays = [
