@@ -157,7 +157,7 @@
       hyprland = lib.mkOption {
         default = [];
         example = [];
-        type = listOf str;
+        type = listOf anything;
         description = "Hyprland window rules";
       };
     };

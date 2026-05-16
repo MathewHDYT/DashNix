@@ -120,7 +120,7 @@ in {
         mapping = packageMapping.mappingToList (defaultMapping // config.mods.gaming.packageMapping);
       in
         mapping;
-      boot.kernelPackages = lib.mkForce pkgs.cachyosKernels.linuxPackages-cachyos-latest;
+      # boot.kernelPackages = lib.mkForce pkgs.cachyosKernels.linuxPackages-cachyos-latest;
       services.scx = lib.mkIf (config.mods.gaming.scheduler != null) {
         enable = true;
         inherit (config.mods.gaming) scheduler;

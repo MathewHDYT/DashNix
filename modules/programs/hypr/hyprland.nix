@@ -4,6 +4,8 @@
   lib,
   options,
   pkgs,
+  inputs,
+  system,
   ...
 }: let
   defaultWmConf = import ../../../lib/wm.nix;
@@ -78,7 +80,12 @@ in {
   };
 
   config = lib.mkIf config.mods.hypr.hyprland.enable (
-    lib.optionalAttrs (options ? wayland.windowManager.hyprland) {
+    lib.optionalAttrs (options ? stylix.targets.hyprland) {
+      stylix.targets.hyprland = {
+        enable = false;
+      };
+    }
+    // lib.optionalAttrs (options ? wayland.windowManager.hyprland) {
       # install Hyprland related packages
       home.packages = with pkgs; [
         xprop
@@ -96,14 +103,9 @@ in {
       ];
 
       wayland.windowManager.hyprland = let
-        mkWorkspace = workspaces:
-          builtins.map (workspace: let
-            default =
-              if workspace.default
-              then ",default:true"
-              else "";
-          in "${workspace.name},monitor:${workspace.monitor}${default}")
-          workspaces;
+        modKey = lib.strings.toUpper config.mods.wm.modKey;
+
+        # --------------- Monitors ---------------
         mkTransform = transform:
           if transform == "0"
           then 0
@@ -114,134 +116,245 @@ in {
           else if transform == "270"
           then 3
           else 4;
-        mkVrr = vrr:
-          if vrr
-          then "1"
-          else "0";
+
         mkMonitors = monitors:
-          builtins.map (
-            monitor: "${monitor.name},${builtins.toString monitor.resolutionX}x${builtins.toString monitor.resolutionY}@${builtins.toString monitor.refreshrate},${builtins.toString monitor.positionX}x${builtins.toString monitor.positionY},${builtins.toString monitor.scale}, transform,${builtins.toString (mkTransform monitor.transform)}, vrr,${mkVrr monitor.vrr}"
-          )
+          builtins.map (monitor: {
+            output = monitor.name;
+            mode = "${builtins.toString monitor.resolutionX}x${builtins.toString monitor.resolutionY}@${builtins.toString monitor.refreshrate}";
+            position = "${builtins.toString monitor.positionX}x${builtins.toString monitor.positionY}";
+            scale = monitor.scale;
+            transform = mkTransform monitor.transform;
+            vrr =
+              if monitor.vrr
+              then 1
+              else 0;
+          })
           monitors;
 
-        mkMods = bind: let
-          mods = bind.modKeys or [];
-        in
-          builtins.map (mod:
-            if mod == "Mod"
-            then (lib.strings.toUpper config.mods.wm.modKey) + " "
-            else lib.strings.toUpper mod)
-          mods
-          |> lib.strings.concatStringsSep "";
-        mkArgs = args:
-          if args != []
-          then (lib.strings.concatStringsSep " " args)
-          else "";
-        shouldRepeat = bind: bind ? meta && bind.meta ? hyprland && bind.meta.hyprland ? repeat && bind.meta.hyprland.repeat == true;
+        # --------------- Workspaces ---------------
+        mkWorkspace = workspaces:
+          builtins.map (workspace:
+            {
+              workspace = workspace.name;
+              monitor = workspace.monitor;
+            }
+            // lib.optionalAttrs workspace.default {default = true;})
+          workspaces;
 
-        defaultBinds = cfg:
-          if cfg.mods.wm.useDefaultBinds
-          then defaultWmConf.defaultBinds cfg
-          else [];
-
-        mkEBinds = cfg: let
-          binds = cfg.mods.wm.binds ++ defaultBinds cfg;
+        # --------------- Window Rules ---------------
+        # Parse legacy "match:class Foo, float on" strings into attrsets
+        parseWindowRule = ruleStr: let
+          # e.g. "match:class OxiCalc, float on"
+          parts = lib.strings.splitString ", " ruleStr;
+          matchPart = builtins.head parts;
+          # matchPart: "match:class OxiCalc"
+          matchKV = lib.strings.removePrefix "match:" matchPart;
+          matchParts = lib.strings.splitString " " matchKV;
+          matchKey = builtins.head matchParts;
+          matchVal = lib.strings.concatStringsSep " " (builtins.tail matchParts);
+          ruleParts = builtins.tail parts;
+          ruleStr' = lib.strings.concatStringsSep ", " ruleParts;
+          # ruleStr': "float on" or "center on" or "workspace 10 silent"
+          ruleWords = lib.strings.splitString " " ruleStr';
+          ruleKey = builtins.head ruleWords;
+          ruleVal = lib.strings.concatStringsSep " " (builtins.tail ruleWords);
         in
-          binds
-          |> builtins.filter (bind: bind ? command && shouldRepeat bind && !(hasInvalidCustomCommand bind))
-          |> builtins.map (
-            bind: "${mkMods bind},${bind.key},${mkCommand bind}"
+          {
+            match = {${matchKey} = matchVal;};
+          }
+          // (
+            if ruleKey == "float"
+            then {float = true;}
+            else if ruleKey == "center"
+            then {center = true;}
+            else if ruleKey == "workspace"
+            then {workspace = ruleVal;}
+            else {${ruleKey} = ruleVal;}
           );
-        mkBinds = cfg: let
-          binds = cfg.mods.wm.binds ++ defaultBinds cfg;
-        in
-          binds
-          |> builtins.filter (bind: bind ? command && !(shouldRepeat bind) && !(hasInvalidCustomCommand bind))
-          |> builtins.map (
-            bind: "${mkMods bind},${bind.key},${mkCommand bind}"
-          );
-        mkCommand = bind: let
-          args = bind.args or [];
-        in
-          if bind.command == "quit"
-          then "exit"
-          else if bind.command == "killActive"
-          then "killactive"
-          else if bind.command == "moveWindowRight"
-          then "movewindow,r"
-          else if bind.command == "moveWindowDown"
-          then "movewindow,d"
-          else if bind.command == "moveWindowLeft"
-          then "movewindow,l"
-          else if bind.command == "moveWindowUp"
-          then "movewindow,u"
-          else if bind.command == "moveFocusUp"
-          then "movefocus,u"
-          else if bind.command == "moveFocusRight"
-          then "movefocus,r"
-          else if bind.command == "moveFocusDown"
-          then "movefocus,d"
-          else if bind.command == "moveFocusLeft"
-          then "movefocus,l"
-          else if bind.command == "toggleFloating"
-          then "togglefloating"
-          else if bind.command == "toggleFullscreen"
-          then "fullscreen"
-          else if bind.command == "focusWorkspace"
-          then "workspace" + "," + mkArgs args
-          else if bind.command == "moveToWorkspace"
-          then "movetoworkspace" + "," + mkArgs args
-          else if bind.command == "spawn"
-          then "exec" + "," + mkArgs args
-          else if bind.command == "spawn-sh"
-          then "exec" + "," + mkArgs args
-          else bind.command.hyprland + "," + mkArgs args;
-        hasInvalidCustomCommand = bind: !(builtins.isString bind.command) && bind.command.hyprland or null == null;
 
-        mkEnv = config: let
+        mkWindowRule = cfg: let
+          defaultWindowRules =
+            if cfg.mods.wm.useDefaultWindowRules
+            then defaultWmConf.defaultWindowRules.hyprland
+            else [];
+          userWindowRules = cfg.mods.wm.windowRules.hyprland or [];
+          allRules = defaultWindowRules ++ userWindowRules;
+        in
+          builtins.map (
+            rule:
+              if builtins.isString rule
+              then parseWindowRule rule
+              else rule
+          )
+          allRules;
+
+        # --------------- Env ---------------
+        mkEnv = cfg: let
           defaultEnv =
-            if config.mods.wm.useDefaultEnv
-            then defaultWmConf.defaultEnv config
+            if cfg.mods.wm.useDefaultEnv
+            then defaultWmConf.defaultEnv cfg
             else {
               all = {};
               hyprland = {};
             };
           userEnv =
-            if config.mods.wm.env ? all
-            then config.mods.wm.env.all // config.mods.wm.env.hyprland
-            else config.mods.wm.env;
+            if cfg.mods.wm.env ? all
+            then cfg.mods.wm.env.all // cfg.mods.wm.env.hyprland
+            else cfg.mods.wm.env;
           env = userEnv // defaultEnv.all // defaultEnv.hyprland;
         in
-          lib.attrsets.mapAttrsToList (
-            name: value: "${name},${value}"
-          )
-          env;
-        mkAutoStart = config: let
+          lib.attrsets.mapAttrsToList (name: value: {_args = [name value];}) env;
+
+        # --------------- AutoStart ---------------
+        mkAutoStart = cfg: let
           defaultStartup =
-            if config.mods.wm.useDefaultStartup
-            then defaultWmConf.defaultStartup config
+            if cfg.mods.wm.useDefaultStartup
+            then defaultWmConf.defaultStartup cfg
             else {
               all = [];
               hyprland = [];
             };
           userStartup =
-            if config.mods.wm.startup ? all
-            then config.mods.wm.startup.all ++ config.mods.wm.startup.hyprland
-            else config.mods.wm.startup;
-          autoStart = userStartup ++ defaultStartup.all ++ defaultStartup.hyprland;
+            if cfg.mods.wm.startup ? all
+            then cfg.mods.wm.startup.all ++ cfg.mods.wm.startup.hyprland
+            else cfg.mods.wm.startup;
         in
-          autoStart;
-        mkWindowRule = config: let
-          defaultWindowRules =
-            if config.mods.wm.useDefaultWindowRules
-            then defaultWmConf.defaultWindowRules.hyprland
-            else [];
+          builtins.filter (s: s != "") (userStartup ++ defaultStartup.all ++ defaultStartup.hyprland);
+
+        # --------------- Binds (Lua extraConfig) ---------------
+        defaultBinds = cfg:
+          if cfg.mods.wm.useDefaultBinds
+          then defaultWmConf.defaultBinds cfg
+          else [];
+
+        shouldRepeat = bind:
+          bind ? meta && bind.meta ? hyprland && bind.meta.hyprland ? repeat && bind.meta.hyprland.repeat == true;
+
+        hasInvalidCustomCommand = bind:
+          !(builtins.isString bind.command) && bind.command.hyprland or null == null;
+
+        # Build key string: "SUPER + Q", "SUPER + SHIFT + 1", etc.
+        mkKeyStr = bind: let
+          mods = bind.modKeys or [];
+          modStrs =
+            builtins.map (
+              mod:
+                if mod == "Mod"
+                then modKey
+                else lib.strings.toUpper mod
+            )
+            mods;
+          allParts = modStrs ++ [bind.key];
         in
-          # defaultWindowRules ++ config.mods.wm.windowRules.hyprland;
-          defaultWindowRules;
+          lib.strings.concatStringsSep " + " allParts;
+
+        # Build dispatcher string for hl.dsp.*
+        mkDispatcher = bind: let
+          args = bind.args or [];
+          # Serialize a value as a Lua literal.
+          # Uses builtins.toJSON for strings so special chars (quotes, backslashes, etc.)
+          # are properly escaped — JSON string syntax is valid Lua string syntax.
+          mkLuaVal = x:
+            if builtins.isInt x || builtins.isFloat x || builtins.isBool x
+            then builtins.toString x
+            else if builtins.isString x && builtins.match "^-?[0-9]+$" x != null
+            then x # numeric string → unquoted
+            else builtins.toJSON x; # produces "..." with proper escaping
+          mkArgsStr = a: lib.strings.concatStringsSep ", " (builtins.map mkLuaVal a);
+        in
+          if bind.command == "quit"
+          then "hl.dsp.exit()"
+          else if bind.command == "killActive"
+          then "hl.dsp.window.close()"
+          else if bind.command == "moveWindowRight"
+          then ''hl.dsp.window.move({ direction = "right" })''
+          else if bind.command == "moveWindowDown"
+          then ''hl.dsp.window.move({ direction = "down" })''
+          else if bind.command == "moveWindowLeft"
+          then ''hl.dsp.window.move({ direction = "left" })''
+          else if bind.command == "moveWindowUp"
+          then ''hl.dsp.window.move({ direction = "up" })''
+          else if bind.command == "moveFocusUp"
+          then ''hl.dsp.focus({ direction = "up" })''
+          else if bind.command == "moveFocusRight"
+          then ''hl.dsp.focus({ direction = "right" })''
+          else if bind.command == "moveFocusDown"
+          then ''hl.dsp.focus({ direction = "down" })''
+          else if bind.command == "moveFocusLeft"
+          then ''hl.dsp.focus({ direction = "left" })''
+          else if bind.command == "toggleFloating"
+          then ''hl.dsp.window.float({ action = "toggle" })''
+          else if bind.command == "toggleFullscreen"
+          then "hl.dsp.window.fullscreen()"
+          else if bind.command == "focusWorkspace"
+          then ''hl.dsp.focus({ workspace = ${builtins.head args} })''
+          else if bind.command == "moveToWorkspace"
+          then ''hl.dsp.window.move({ workspace = ${builtins.head args} })''
+          else if bind.command == "spawn"
+          then ''hl.dsp.exec_cmd(${mkArgsStr args})''
+          else if bind.command == "spawn-sh"
+          then ''hl.dsp.exec_cmd(${mkArgsStr args})''
+          else let
+            hyprCmd = bind.command.hyprland;
+            argsStr = mkArgsStr args;
+          in
+            if hyprCmd == "movetoworkspacesilent"
+            then ''hl.dsp.window.move({ workspace = ${builtins.head args}, follow = false })''
+            else if hyprCmd == "resizeactive"
+            then let
+              x = builtins.elemAt args 0;
+              y = builtins.elemAt args 1;
+            in ''hl.dsp.window.resize({ x = ${x}, y = ${y}, relative = true })''
+            else if hyprCmd == "layoutmsg"
+            then ''hl.dsp.layout(${mkArgsStr args})''
+            else
+              # generic fallback - use legacy hyprctl dispatch
+              ''hl.dsp.layout("${hyprCmd}"${
+                  if args != []
+                  then ", " + argsStr
+                  else ""
+                })'';
+
+        # Build opts string for hl.bind
+        mkBindOpts = bind: let
+          repeat = shouldRepeat bind;
+          isMouse = lib.strings.hasPrefix "mouse:" (bind.key or "");
+        in
+          if repeat && isMouse
+          then ", { repeating = true, mouse = true }"
+          else if repeat
+          then ", { repeating = true }"
+          else if isMouse
+          then ", { mouse = true }"
+          else "";
+
+        mkBindLines = cfg: let
+          binds = cfg.mods.wm.binds ++ defaultBinds cfg;
+          validBinds =
+            builtins.filter (
+              bind:
+                bind ? command && bind ? key && !(hasInvalidCustomCommand bind)
+            )
+            binds;
+        in
+          builtins.map (
+            bind: ''hl.bind("${mkKeyStr bind}", ${mkDispatcher bind}${mkBindOpts bind})''
+          )
+          validBinds;
+
+        # Generate the full extraConfig for binds
+        mkBindsExtraConfig = cfg:
+        # Mouse drag/resize binds
+          ''hl.bind("${modKey} + mouse:272", hl.dsp.window.drag(), { mouse = true })''
+          + "\n"
+          + ''hl.bind("${modKey} + mouse:273", hl.dsp.window.resize(), { mouse = true })''
+          + "\n"
+          + lib.strings.concatStringsSep "\n" (mkBindLines cfg)
+          + "\n";
       in {
         enable = true;
-        package = pkgs.hyprland;
+        # package = pkgs.hyprland;
+        package = inputs.hyprland.packages.${system}.default;
         plugins =
           [
             (lib.mkIf config.mods.hypr.hyprland.hyprspaceEnable pkgs.hyprlandPlugins.hyprspace)
@@ -253,105 +366,180 @@ in {
             lib.mkMerge
             [
               {
-                "$mod" = mkDashDefault config.mods.wm.modKey;
-
-                bindm = [
-                  "$mod, mouse:272, movewindow"
-                  "$mod, mouse:273, resizeactive"
-                ];
-
-                general = {
-                  gaps_out = mkDashDefault "3,5,5,5";
-                  border_size = mkDashDefault 3;
-                  "col.active_border" = lib.mkOverride 51 "0xFFFF0000 0xFF00FF00 0xFF0000FF 45deg";
-                  allow_tearing = lib.mkIf config.mods.hypr.hyprland.noAtomic true;
-                };
-
-                decoration = {
-                  rounding = mkDashDefault 4;
-                };
-
-                render = {
-                  direct_scanout = mkDashDefault config.mods.gaming.enable;
-                };
-
-                animations = {
-                  bezier = mkDashDefault "overshot, 0.05, 0.9, 0.1, 1.2";
-                  animation = [
-                    "windowsMove,1,4,default"
-                    "windows,1,3,overshot,slide bottom"
-                    "windowsOut,1,7,default,popin 70%"
-                    "border,1,4,default"
-                    "fade,1,7,default"
-                    "workspaces,1,4,default"
-                    "layers,1,2,default,slide"
+                curve = {
+                  _args = [
+                    "overshot"
+                    {
+                      type = "bezier";
+                      points = [[0.05 0.9] [0.1 1.2]];
+                    }
                   ];
                 };
 
-                dwindle = {
-                  preserve_split = mkDashDefault true;
-                  pseudotile = mkDashDefault 0;
-                  permanent_direction_override = mkDashDefault false;
-                };
+                animation = [
+                  {
+                    leaf = "windowsMove";
+                    enabled = true;
+                    speed = 4;
+                    bezier = "default";
+                  }
+                  {
+                    leaf = "windows";
+                    enabled = true;
+                    speed = 3;
+                    style = "slide bottom";
+                    bezier = "overshot";
+                  }
+                  {
+                    leaf = "windowsOut";
+                    enabled = true;
+                    speed = 7;
+                    style = "popin 80%";
+                    bezier = "overshot";
+                  }
+                  {
+                    leaf = "border";
+                    enabled = true;
+                    speed = 4;
+                    bezier = "default";
+                  }
+                  {
+                    leaf = "fade";
+                    enabled = true;
+                    speed = 7;
+                    bezier = "default";
+                  }
+                  {
+                    leaf = "workspaces";
+                    enabled = true;
+                    speed = 4;
+                    bezier = "default";
+                  }
+                  {
+                    leaf = "layers";
+                    enabled = true;
+                    speed = 2;
+                    style = "slide";
+                    bezier = "default";
+                  }
+                ];
 
-                input = {
-                  kb_layout = mkDashDefault "${config.mods.xkb.layout}";
-                  kb_variant = mkDashDefault "${config.mods.xkb.variant}";
-                  repeat_delay = mkDashDefault 200;
-                  force_no_accel = mkDashDefault true;
-                  touchpad = {
-                    natural_scroll = mkDashDefault true;
-                    tap-to-click = mkDashDefault true;
-                    tap-and-drag = mkDashDefault true;
+                # All Hyprland config options go under hl.config(...)
+                config = {
+                  general = {
+                    gaps_out = mkDashDefault {
+                      top = 3;
+                      right = 5;
+                      bottom = 5;
+                      left = 5;
+                    };
+                    border_size = mkDashDefault 3;
+                    col = {
+                      active_border = lib.mkOverride 51 {
+                        colors = ["0xFFFF0000" "0xFF00FF00" "0xFF0000FF"];
+                        angle = 45;
+                      };
+                      inactive_border = mkDashDefault "rgb(45475a)";
+                    };
+                    allow_tearing = lib.mkIf config.mods.hypr.hyprland.noAtomic true;
+                  };
+
+                  decoration = {
+                    rounding = mkDashDefault 4;
+                    shadow = {
+                      color = mkDashDefault "rgba(1e1e2e99)";
+                    };
+                  };
+
+                  render = {
+                    direct_scanout = mkDashDefault config.mods.gaming.enable;
+                  };
+
+                  dwindle = {
+                    preserve_split = mkDashDefault true;
+                    permanent_direction_override = mkDashDefault false;
+                  };
+
+                  input = {
+                    kb_layout = mkDashDefault "${config.mods.xkb.layout}";
+                    kb_variant = mkDashDefault "${config.mods.xkb.variant}";
+                    repeat_delay = mkDashDefault 200;
+                    force_no_accel = mkDashDefault true;
+                    touchpad = {
+                      natural_scroll = mkDashDefault true;
+                      tap_to_click = mkDashDefault true;
+                      tap_and_drag = mkDashDefault true;
+                    };
+                  };
+
+                  misc = {
+                    animate_manual_resizes = mkDashDefault 1;
+                    enable_swallow = mkDashDefault true;
+                    disable_splash_rendering = mkDashDefault true;
+                    disable_hyprland_logo = mkDashDefault true;
+                    disable_xdg_env_checks = mkDashDefault true;
+                    disable_scale_notification = mkDashDefault true;
+                    swallow_regex = mkDashDefault "^(.*)(kitty)(.*)$";
+                    initial_workspace_tracking = mkDashDefault 1;
+                    #just doesn't work
+                    enable_anr_dialog = false;
+                  };
+
+                  cursor = {
+                    enable_hyprcursor = mkDashDefault true;
+                    no_hardware_cursors = mkDashDefault (
+                      if config.mods.gpu.nvidia.enable
+                      then 2
+                      else 0
+                    );
+                    #done with nix, this would break the current setup otherwise
+                    sync_gsettings_theme = mkDashDefault false;
+                  };
+
+                  group = {
+                    col = {
+                      border_active = mkDashDefault "rgb(cba6f7)";
+                      border_inactive = mkDashDefault "rgb(45475a)";
+                      border_locked_active = mkDashDefault "rgb(94e2d5)";
+                    };
+                    groupbar = {
+                      col = {
+                        active = mkDashDefault "rgb(cba6f7)";
+                        inactive = mkDashDefault "rgb(45475a)";
+                      };
+                      text_color = mkDashDefault "rgb(cdd6f4)";
+                    };
                   };
                 };
 
-                misc = {
-                  animate_manual_resizes = mkDashDefault 1;
-                  enable_swallow = mkDashDefault true;
-                  disable_splash_rendering = mkDashDefault true;
-                  disable_hyprland_logo = mkDashDefault true;
-                  disable_xdg_env_checks = mkDashDefault true;
-                  disable_scale_notification = mkDashDefault true;
-                  swallow_regex = mkDashDefault "^(.*)(kitty)(.*)$";
-                  initial_workspace_tracking = mkDashDefault 1;
-                  # just doesn't work
-                  enable_anr_dialog = false;
+                gesture = {
+                  fingers = 3;
+                  direction = "horizontal";
+                  action = "workspace";
                 };
 
-                cursor = {
-                  enable_hyprcursor = mkDashDefault true;
-                  no_hardware_cursors = mkDashDefault (
-                    if config.mods.gpu.nvidia.enable
-                    then 2
-                    else 0
-                  );
-                  # done with nix, this would break the current setup otherwise
-                  sync_gsettings_theme = mkDashDefault false;
-                };
-
-                gesture = [
-                  "3, horizontal, workspace"
+                layer_rule = [
+                  # layer rules - mainly to disable animations within slurp and grim
+                  {
+                    match = {namespace = "selection";};
+                    no_anim = true;
+                  }
                 ];
 
-                layerrule = [
-                  # layer rules
-                  # mainly to disable animations within slurp and grim
-                  "match:namespace selection, no_anim on"
-                ];
-
-                workspace = mkWorkspace config.mods.wm.workspaces;
+                workspace_rule = mkWorkspace config.mods.wm.workspaces;
                 monitor = mkMonitors config.mods.wm.monitors;
                 env = mkEnv config;
-                bind = mkBinds config;
-                binde = mkEBinds config;
-                windowrule = mkWindowRule config;
-                exec-once = mkAutoStart config;
-                plugin = config.mods.hypr.hyprland.pluginConfig;
+                window_rule = mkWindowRule config;
+                exec_cmd = mkAutoStart config;
+                plugin = lib.mkIf (config.mods.hypr.hyprland.pluginConfig != {}) config.mods.hypr.hyprland.pluginConfig;
               }
               config.mods.hypr.hyprland.customConfig
             ]
           else lib.mkForce config.mods.hypr.hyprland.customConfig;
+
+        extraConfig =
+          lib.mkIf config.mods.hypr.hyprland.useDefaultConfig
+          (mkBindsExtraConfig config);
       };
     }
   );

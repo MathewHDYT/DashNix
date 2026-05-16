@@ -43,9 +43,10 @@
         '';
       };
       greeterCommand = lib.mkOption {
+        # pkgs.hyprland
         default = "${
-          pkgs.hyprland
-        }/bin/start-hyprland -- --config /etc/greetd/hyprgreet.conf";
+          inputs.hyprland.packages.${system}.default
+        }/bin/start-hyprland -- --config /etc/greetd/hyprgreet.lua";
         example = "${
           lib.getExe pkgs.cage
         } -s -- ${lib.getExe pkgs.regreet}";
@@ -69,7 +70,8 @@
       };
       environments = lib.mkOption {
         default = [
-          (lib.mkIf config.mods.hypr.hyprland.enable pkgs.hyprland)
+          # (lib.mkIf config.mods.hypr.hyprland.enable pkgs.hyprland)
+          (lib.mkIf config.mods.hypr.hyprland.enable inputs.hyprland.packages.${system}.default)
           (lib.mkIf config.mods.niri.enable pkgs.niri)
         ];
         # no idea if these are written correctly
@@ -122,30 +124,30 @@
         };
 
         # should technically be the same, but this is configured instead in order to provide a decent out of the box login experience.
-        environment.etc."greetd/hyprgreet.conf".text = ''
-          monitor=${config.mods.greetd.monitor},${config.mods.greetd.resolution},0x0,${config.mods.greetd.scale}
-          monitor=,disable
+        environment.etc."greetd/hyprgreet.lua".text = ''
+          monitor("${config.mods.greetd.monitor}", "${config.mods.greetd.resolution}", "0x0", ${config.mods.greetd.scale})
+          monitor("", "disable", "0x0", 1)
 
-          input {
-              kb_layout = ${config.mods.xkb.layout}
-              kb_variant = ${config.mods.xkb.variant}
-              force_no_accel = true
-          }
+          input({
+            kb_layout = "${config.mods.xkb.layout}",
+            kb_variant = "${config.mods.xkb.variant}",
+            force_no_accel = true,
+          })
 
-          misc {
-              disable_splash_rendering = false
-              disable_hyprland_logo = true
-              disable_xdg_env_checks = true
-              disable_scale_notification = true
-          }
+          misc({
+            disable_splash_rendering = false,
+            disable_hyprland_logo = true,
+            disable_xdg_env_checks = true,
+            disable_scale_notification = true,
+          })
 
-          env=HYPRCURSOR_THEME,${config.mods.stylix.cursor.name}
-          env=HYPRCURSOR_SIZE,${toString config.mods.stylix.cursor.size}
-          env=XCURSOR_THEME,${config.mods.stylix.cursor.name}
-          env=XCURSOR_SIZE,${toString config.mods.stylix.cursor.size}
-          env=QT_QPA_PLATFORMTHEME,qt5ct
+          env("HYPRCURSOR_THEME", "${config.mods.stylix.cursor.name}")
+          env("HYPRCURSOR_SIZE", "${toString config.mods.stylix.cursor.size}")
+          env("XCURSOR_THEME", "${config.mods.stylix.cursor.name}")
+          env("XCURSOR_SIZE", "${toString config.mods.stylix.cursor.size}")
+          env("QT_QPA_PLATFORMTHEME", "qt5ct")
 
-          exec-once=${pkgs.regreet}/bin/regreet --style /home/${username}/.config/gtk-3.0/gtk.css --config /home/${username}/.config/regreet/regreet.toml; hyprctl dispatch exit
+          exec_once("${pkgs.regreet}/bin/regreet --style /home/${username}/.config/gtk-3.0/gtk.css --config /home/${username}/.config/regreet/regreet.toml; hyprctl dispatch exit")
         '';
 
         # unlock GPG keyring on login

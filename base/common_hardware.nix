@@ -52,7 +52,7 @@ in {
     };
     kernelParams =
       [
-        ''resume="PARTLABEL=SWAP"''
+        ''resume="LABEL=SWAP"''
         ''quiet''
         ''udev.log_level=3''
       ]
