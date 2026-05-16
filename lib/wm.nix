@@ -180,7 +180,7 @@ in {
     (mkBindWithDesc ["Mod"] "Q" "killActive" [] "Kill active window")
 
     (mkBindWithDesc ["Mod"] "N" "spawn" ["neovide"] "Open Neovide")
-    (mkBindWithDesc ["Mod"] "T" "spawn-sh" ["kitty" "-1"] "Open Kitty")
+    (mkBindWithDesc ["Mod"] "T" "spawn-sh" ["kitty -1"] "Open Kitty")
     (mkBindWithDesc ["Mod" "Shift"] "L" "spawn" ["hyprlock"] "Lock screen")
 
     (
