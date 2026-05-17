@@ -519,7 +519,7 @@ in {
           enable = true;
           inherit (config.mods.stylix) colorscheme;
         };
-        programs.vscode = lib.mkIf config.mods.coding.vscodium.enable {
+        programs.vscodium = lib.mkIf config.mods.coding.vscodium.enable {
           enable = true;
           package = mkDashDefault pkgs.vscodium;
           profiles.default.extensions = config.mods.coding.vscodium.extensions;
