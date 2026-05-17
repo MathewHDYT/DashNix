@@ -84,6 +84,7 @@ in {
       stylix.targets.hyprland = {
         enable = false;
       };
+      services.hyprpaper.enable = true;
     }
     // lib.optionalAttrs (options ? wayland.windowManager.hyprland) {
       # install Hyprland related packages
