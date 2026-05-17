@@ -117,7 +117,7 @@
               terminal.vt = mkDashDefault 1;
               default_session = {
                 command = mkDashDefault config.mods.greetd.greeterCommand;
-                user = mkDashDefault username;
+                user = mkDashDefault "greeter";
               };
             };
           };
