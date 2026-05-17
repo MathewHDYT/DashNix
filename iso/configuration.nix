@@ -65,7 +65,7 @@ in {
         terminal.vt = 1;
         default_session = {
           # command = "${lib.getExe pkgs.hyprland}";
-          command = "${lib.getExe inputs.hyprland.packages.${system}.default}";
+          command = lib.mkDefault "${pkgs.dbus}/bin/dbus-run-session ${lib.getExe inputs.hyprland.packages.${system}.default}";
           user = "nixos";
         };
       };
