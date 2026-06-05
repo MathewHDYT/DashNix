@@ -3,7 +3,7 @@
 
   inputs = {
     unstable.url = "github:NixOs/nixpkgs/nixos-unstable";
-    stable.url = "github:NixOs/nixpkgs/nixos-25.05";
+    stable.url = "github:NixOs/nixpkgs/nixos-26.05";
     nixos-wsl.url = "github:nix-community/NixOS-WSL/main";
     nur.url = "github:nix-community/NUR";
     lanzaboote = {
@@ -11,9 +11,6 @@
       inputs.nixpkgs.follows = "unstable";
     };
     statix.url = "github:oppiliappan/statix?ref=master";
-    # Darkreader requires es20, hence a stable pin
-    pkgsDarkreader.url = "github:NixOs/nixpkgs/nixos-24.11";
-
     home-manager = {
       url = "github:nix-community/home-manager";
       inputs.nixpkgs.follows = "unstable";
@@ -65,7 +62,6 @@
       };
     stable = defaultConfigureFn inputs.stable;
     unstable = defaultConfigureFn inputs.unstable;
-    pkgsDarkreader = defaultConfigureFn inputs.pkgsDarkreader;
   in rec {
     dashNixLib = import ./lib {
       inherit
@@ -74,9 +70,7 @@
         unstable
         permittedPackages
         ;
-      dashNixAdditionalProps = {
-        inherit pkgsDarkreader;
-      };
+      dashNixAdditionalProps = {};
       system = currentSystem;
     };
     colorLib = import ./lib/colors.nix {

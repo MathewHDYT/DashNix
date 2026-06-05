@@ -238,7 +238,7 @@ in {
           };
           packages = lib.mkOption {
             default = with pkgs; [
-              nodejs_20
+              nodejs
               deno
               typescript
             ];

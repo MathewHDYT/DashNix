@@ -51,8 +51,8 @@ in {
       ];
     };
     kernelParams =
-      [
-        (lib.mkIf (config.mods.drives.useSwap && config.mods.drives.variant == "manual" && !config.conf.wsl) ''resume="LABEL=SWAP"'')
+      lib.optional (config.mods.drives.useSwap && config.mods.drives.variant == "manual" && !config.conf.wsl) ''resume="LABEL=SWAP"''
+      ++ [
         ''quiet''
         ''udev.log_level=3''
       ]
